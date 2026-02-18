@@ -51,6 +51,11 @@ button {
   font-weight: bold;
 }
 
+  .today-row {
+  background-color: #e6f9ec;
+  border-left: 5px solid #28a745;
+}
+
 h2 {
   margin-bottom: 15px;
 }
@@ -116,6 +121,16 @@ function formatDate(date) {
 function addRow(dateObj) {
   const tbody = document.getElementById("rows");
   const row = document.createElement("tr");
+
+  const today = new Date();
+  const isToday =
+    dateObj.getDate() === today.getDate() &&
+    dateObj.getMonth() === today.getMonth() &&
+    dateObj.getFullYear() === today.getFullYear();
+
+  if (isToday) {
+    row.classList.add("today-row");
+  }
 
   row.innerHTML = `
     <td>${formatDate(dateObj)}</td>
