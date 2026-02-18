@@ -4,15 +4,116 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Timecard</title>
 <style>
-body { font-family:-apple-system,BlinkMacSystemFont,sans-serif; padding:15px; }
-table { width:100%; border-collapse:collapse; }
-th,td { padding:8px; text-align:center; border:1px solid #ccc; }
-input { width:100%; padding:6px; font-size:16px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
-button { padding:6px 10px; font-size:14px; border-radius:6px; border:none; background:#007aff; color:white; }
-button:disabled { background:#ccc; color:#666; }
-.today-row { background:#e6f9ec; border-left:5px solid #28a745; }
-.total { font-weight:bold; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 15px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #ccc;
+}
+
+th {
+  background: #f5f5f5;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f2f2f2;
+  box-sizing: border-box;
+}
+
+input[type="time"] {
+  min-width: 90px;
+}
+
+.total {
+  font-weight: bold;
+}
+
+.today-row {
+  background-color: #e6f9ec;
+  border-left: 5px solid #28a745;
+}
+
+button {
+  padding: 8px 14px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: none;
+  background: #007aff;
+  color: white;
+}
+
+button:disabled {
+  background: #ccc !important;
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* Week navigation layout fix */
+#weekControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+#weekControls button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 18px;
+  border-radius: 12px;
+}
+
+#weekLabel {
+  font-weight: bold;
+  font-size: 18px;
+  padding: 0 10px;
+}
+
+/* Payslip navigation spacing */
+.payslip-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.payslip-nav button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 12px;
+  font-size: 18px;
+}
+
+/* Better spacing between clock in/out */
+td:nth-child(2),
+td:nth-child(3) {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
 </style>
+
 </head>
 <body>
 
