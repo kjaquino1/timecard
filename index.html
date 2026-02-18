@@ -72,6 +72,14 @@ h2 {
 
 <h2>Timecard</h2>
 
+  <label><strong>Name:</strong></label>
+<select id="userSelect" onchange="loadUser()" style="padding:6px; font-size:16px;">
+  <option value="default">Default</option>
+</select>
+
+<button onclick="addUser()" style="width:auto; padding:6px 10px;">+ Add</button>
+
+
   <label for="payRate"><strong>Pay Rate:</strong></label>
 <select id="payRate" onchange="calculate()" style="margin-bottom:15px; padding:6px; font-size:16px;">
   <option value="7.60">£7.60</option>
@@ -88,6 +96,8 @@ h2 {
     <option value="week" selected>Week View</option>
     <option value="month">Month View</option>
   </select>
+
+    <button onclick="goToToday()" style="width:auto; padding:6px 12px; margin-left:10px;">Today</button>
 
   <!-- Week Navigation -->
   <div id="weekControls" style="display:flex; align-items:center; gap:10px; margin-top:10px;">
@@ -116,6 +126,10 @@ h2 {
 <h3>Total Week Hours: <span id="weekTotal">0.00</span></h3>
 <h3>Total Money: £<span id="totalMoney">0.00</span></h3>
 
+<button onclick="saveUser()" style="background:#28a745;">Save</button>
+<button onclick="resetUser()" style="background:#dc3545;">Reset</button>
+
+
 <script>
 const anchorDate = new Date(2026, 1, 2); // Feb 2 2026
 let currentView = "week";
@@ -137,6 +151,14 @@ function getCurrentCycle() {
 
   document.getElementById("cycleRange").innerText =
     `Cycle: ${cycleStartDate.toLocaleDateString("en-GB", options)} to ${cycleEnd.toLocaleDateString("en-GB", options)}`;
+}
+
+  function detectCurrentWeek() {
+  const today = new Date();
+  const diffDays = Math.floor((today - cycleStartDate) / 86400000);
+  currentWeek = Math.floor(diffDays / 7) + 1;
+  if (currentWeek < 1) currentWeek = 1;
+  if (currentWeek > 4) currentWeek = 4;
 }
 
 function formatDate(date) {
@@ -257,7 +279,86 @@ function calculate() {
   document.getElementById("totalMoney").innerText = totalMoney.toFixed(2);
 }
 
+  function goToToday() {
+  const today = new Date();
+  const diffDays = Math.floor((today - cycleStartDate) / 86400000);
+
+  if (currentView === "week") {
+    currentWeek = Math.floor(diffDays / 7) + 1;
+    if (currentWeek < 1) currentWeek = 1;
+    if (currentWeek > 4) currentWeek = 4;
+    renderDates();
+  } else {
+    renderDates();
+    setTimeout(() => {
+      const rows = document.querySelectorAll("#rows tr");
+      rows[diffDays]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  }
+}
+
+  let currentUser = "default";
+
+function getUserKey() {
+  return "timecard_" + currentUser;
+}
+
+function saveUser() {
+  const data = [];
+
+  document.querySelectorAll("#rows tr").forEach(row => {
+    data.push({
+      in: row.querySelector(".in").value,
+      out: row.querySelector(".out").value,
+      break: row.querySelector(".break").value
+    });
+  });
+
+  localStorage.setItem(getUserKey(), JSON.stringify(data));
+  alert("Saved");
+}
+
+function loadUser() {
+  currentUser = document.getElementById("userSelect").value;
+  const saved = JSON.parse(localStorage.getItem(getUserKey()));
+  renderDates();
+
+  if (!saved) return;
+
+  document.querySelectorAll("#rows tr").forEach((row, i) => {
+    if (saved[i]) {
+      row.querySelector(".in").value = saved[i].in;
+      row.querySelector(".out").value = saved[i].out;
+      row.querySelector(".break").value = saved[i].break;
+    }
+  });
+
+  calculate();
+}
+
+function resetUser() {
+  localStorage.removeItem(getUserKey());
+  renderDates();
+}
+
+function addUser() {
+  const name = prompt("Enter name:");
+  if (!name) return;
+
+  const select = document.getElementById("userSelect");
+  const option = document.createElement("option");
+  option.value = name;
+  option.textContent = name;
+  select.appendChild(option);
+  select.value = name;
+
+  currentUser = name;
+}
+
+
+
 getCurrentCycle();
+detectCurrentWeek();
 renderDates();
 </script>
 
