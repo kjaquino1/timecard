@@ -125,8 +125,6 @@ h2 {
 
 <h3>Total Week Hours: <span id="weekTotal">0.00</span></h3>
 <h3>Total Money: £<span id="totalMoney">0.00</span></h3>
-
-<button onclick="saveUser()" style="background:#28a745;">Save</button>
 <button onclick="resetUser()" style="background:#dc3545;">Reset</button>
 
 
@@ -137,17 +135,26 @@ let currentWeek = 1;
 let cycleStartDate;
 
   function loadUserDataIntoRows() {
-  const saved = JSON.parse(localStorage.getItem(getUserKey()));
-  if (!saved) return;
+  const stored = JSON.parse(localStorage.getItem(getUserKey()));
+  if (!stored) return;
 
-  document.querySelectorAll("#rows tr").forEach((row, i) => {
-    if (saved[i]) {
-      row.querySelector(".in").value = saved[i].in || "";
-      row.querySelector(".out").value = saved[i].out || "";
-      row.querySelector(".break").value = saved[i].break || 0;
+  if (stored.rate) {
+    document.getElementById("payRate").value = stored.rate;
+  }
+
+  const data = stored.data || {};
+
+  document.querySelectorAll("#rows tr").forEach(row => {
+    const date = row.querySelector("td").innerText;
+
+    if (data[date]) {
+      row.querySelector(".in").value = data[date].in || "";
+      row.querySelector(".out").value = data[date].out || "";
+      row.querySelector(".break").value = data[date].break || 0;
     }
   });
 }
+
 
   function saveUserList() {
   const users = [];
@@ -255,11 +262,8 @@ function addRow(dateObj) {
     dateObj.getFullYear() === today.getFullYear();
 
   if (isToday) {
-    row.classList.add("today-row");
-    setTimeout(() => {
-      row.querySelector(".in").focus();
-    }, 100);
-  }
+  row.classList.add("today-row");
+}
 
   row.innerHTML = `
     <td>${formatDate(dateObj)}</td>
@@ -281,19 +285,24 @@ function addRow(dateObj) {
 }
 
   function autoSave() {
-  const data = [];
+  const stored = JSON.parse(localStorage.getItem(getUserKey())) || { data:{}, rate:null };
+
+  const data = stored.data;
 
   document.querySelectorAll("#rows tr").forEach(row => {
-    data.push({
+    const date = row.querySelector("td").innerText;
+
+    data[date] = {
       in: row.querySelector(".in").value,
       out: row.querySelector(".out").value,
       break: row.querySelector(".break").value
-    });
+    };
   });
 
-  localStorage.setItem(getUserKey(), JSON.stringify(data));
-}
+  stored.rate = document.getElementById("payRate").value;
 
+  localStorage.setItem(getUserKey(), JSON.stringify(stored));
+}
 
 function renderDates() {
   const tbody = document.getElementById("rows");
@@ -400,21 +409,8 @@ function getUserKey() {
 
 function loadUser() {
   currentUser = document.getElementById("userSelect").value;
-  const saved = JSON.parse(localStorage.getItem(getUserKey()));
-detectCurrentWeek();
-renderDates();
-
-  if (!saved) return;
-
-  document.querySelectorAll("#rows tr").forEach((row, i) => {
-    if (saved[i]) {
-      row.querySelector(".in").value = saved[i].in;
-      row.querySelector(".out").value = saved[i].out;
-      row.querySelector(".break").value = saved[i].break;
-    }
-  });
-
-  calculate();
+  detectCurrentWeek();
+  renderDates();
 }
 
 function resetUser() {
