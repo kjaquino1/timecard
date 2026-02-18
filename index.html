@@ -321,7 +321,8 @@ function saveUser() {
 function loadUser() {
   currentUser = document.getElementById("userSelect").value;
   const saved = JSON.parse(localStorage.getItem(getUserKey()));
-  renderDates();
+detectCurrentWeek();
+renderDates();
 
   if (!saved) return;
 
@@ -338,7 +339,8 @@ function loadUser() {
 
 function resetUser() {
   localStorage.removeItem(getUserKey());
-  renderDates();
+detectCurrentWeek();
+renderDates();
 }
 
 function addUser() {
