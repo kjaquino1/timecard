@@ -74,6 +74,18 @@ h2 {
   <option value="12.82">£12.82</option>
 </select>
 
+  <div style="margin-bottom:20px;">
+  <button onclick="setView('week')">Week View</button>
+  <button onclick="setView('month')">28-Day View</button>
+
+  <div id="weekControls" style="margin-top:10px;">
+    <button id="prevWeek" onclick="changeWeek(-1)">◀</button>
+    <span id="weekLabel"></span>
+    <button id="nextWeek" onclick="changeWeek(1)">▶</button>
+  </div>
+
+  <h3 id="cycleRange"></h3>
+</div>
 
 <table border="1">
 <thead>
@@ -93,21 +105,24 @@ h2 {
 <h3>Total Money: £<span id="totalMoney">0.00</span></h3>
 
 <script>
-function getWeekDates() {
+const anchorDate = new Date(2026, 1, 2); // Feb 2 2026
+let currentView = "week";
+let currentWeek = 1;
+let cycleStartDate;
+
+function getCurrentCycle() {
   const today = new Date();
-  const day = today.getDay(); // 0=Sun, 1=Mon
+  const diffDays = Math.floor((today - anchorDate) / 86400000);
+  const cycleIndex = Math.floor(diffDays / 28);
 
-  const mondayOffset = (day === 0 ? -6 : 1 - day);
-  const monday = new Date(today);
-  monday.setDate(today.getDate() + mondayOffset);
+  cycleStartDate = new Date(anchorDate);
+  cycleStartDate.setDate(anchorDate.getDate() + cycleIndex * 28);
 
-  const dates = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    dates.push(d);
-  }
-  return dates;
+  const cycleEnd = new Date(cycleStartDate);
+  cycleEnd.setDate(cycleStartDate.getDate() + 27);
+
+  document.getElementById("cycleRange").innerText =
+    `Cycle: ${cycleStartDate.toLocaleDateString("en-GB")} - ${cycleEnd.toLocaleDateString("en-GB")}`;
 }
 
 function formatDate(date) {
@@ -130,6 +145,9 @@ function addRow(dateObj) {
 
   if (isToday) {
     row.classList.add("today-row");
+    setTimeout(() => {
+      row.querySelector(".in").focus();
+    }, 100);
   }
 
   row.innerHTML = `
@@ -147,8 +165,54 @@ function addRow(dateObj) {
   });
 }
 
+function renderDates() {
+  const tbody = document.getElementById("rows");
+  tbody.innerHTML = "";
+
+  let daysToShow = currentView === "month" ? 28 : 7;
+  let startOffset = currentView === "month" ? 0 : (currentWeek - 1) * 7;
+
+  for (let i = 0; i < daysToShow; i++) {
+    const date = new Date(cycleStartDate);
+    date.setDate(cycleStartDate.getDate() + startOffset + i);
+    addRow(date);
+  }
+
+  updateWeekControls();
+  calculate();
+}
+
+function setView(view) {
+  currentView = view;
+  currentWeek = 1;
+  renderDates();
+}
+
+function changeWeek(direction) {
+  currentWeek += direction;
+  if (currentWeek < 1) currentWeek = 1;
+  if (currentWeek > 4) currentWeek = 4;
+  renderDates();
+}
+
+function updateWeekControls() {
+  const prev = document.getElementById("prevWeek");
+  const next = document.getElementById("nextWeek");
+
+  if (currentView === "month") {
+    document.getElementById("weekControls").style.display = "none";
+    return;
+  }
+
+  document.getElementById("weekControls").style.display = "block";
+  document.getElementById("weekLabel").innerText = `Week ${currentWeek}`;
+
+  prev.disabled = currentWeek === 1;
+  next.disabled = currentWeek === 4;
+}
+
 function calculate() {
-  let weekTotal = 0;
+  let totalHours = 0;
 
   document.querySelectorAll("#rows tr").forEach(row => {
     const timeIn = row.querySelector(".in").value;
@@ -166,22 +230,21 @@ function calculate() {
       if (diff < 0) diff = 0;
 
       row.querySelector(".total").innerText = diff.toFixed(2);
-      weekTotal += diff;
+      totalHours += diff;
     } else {
       row.querySelector(".total").innerText = "0.00";
     }
   });
 
-document.getElementById("weekTotal").innerText = weekTotal.toFixed(2);
+  document.getElementById("weekTotal").innerText = totalHours.toFixed(2);
 
-const selectedRate = parseFloat(document.getElementById("payRate").value);
-const totalMoney = weekTotal * selectedRate;
-document.getElementById("totalMoney").innerText = totalMoney.toFixed(2);
+  const selectedRate = parseFloat(document.getElementById("payRate").value);
+  const totalMoney = totalHours * selectedRate;
+  document.getElementById("totalMoney").innerText = totalMoney.toFixed(2);
 }
 
-// Initialize Monday–Sunday automatically
-const weekDates = getWeekDates();
-weekDates.forEach(date => addRow(date));
+getCurrentCycle();
+renderDates();
 </script>
 
 </body>
