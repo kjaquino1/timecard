@@ -75,9 +75,8 @@ h2 {
 </tbody>
 </table>
 
-<button onclick="addRow()">Add Row</button>
-
 <h3>Total Week Hours: <span id="weekTotal">0.00</span></h3>
+<h3>Total Money (£12.25/hr): £<span id="totalMoney">0.00</span></h3>
 
 <script>
 function getWeekDates() {
@@ -149,7 +148,10 @@ function calculate() {
     }
   });
 
-  document.getElementById("weekTotal").innerText = weekTotal.toFixed(2);
+document.getElementById("weekTotal").innerText = weekTotal.toFixed(2);
+
+const totalMoney = weekTotal * 12.25;
+document.getElementById("totalMoney").innerText = totalMoney.toFixed(2);
 }
 
 // Initialize Monday–Sunday automatically
