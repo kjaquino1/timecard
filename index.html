@@ -136,6 +136,43 @@ let currentView = "week";
 let currentWeek = 1;
 let cycleStartDate;
 
+  function loadUserDataIntoRows() {
+  const saved = JSON.parse(localStorage.getItem(getUserKey()));
+  if (!saved) return;
+
+  document.querySelectorAll("#rows tr").forEach((row, i) => {
+    if (saved[i]) {
+      row.querySelector(".in").value = saved[i].in || "";
+      row.querySelector(".out").value = saved[i].out || "";
+      row.querySelector(".break").value = saved[i].break || 0;
+    }
+  });
+}
+
+  function saveUserList() {
+  const users = [];
+  document.querySelectorAll("#userSelect option").forEach(opt => {
+    users.push(opt.value);
+  });
+  localStorage.setItem("timecard_users", JSON.stringify(users));
+}
+
+  function loadUserList() {
+  const savedUsers = JSON.parse(localStorage.getItem("timecard_users"));
+  if (!savedUsers) return;
+
+  const select = document.getElementById("userSelect");
+  select.innerHTML = "";
+
+  savedUsers.forEach(user => {
+    const option = document.createElement("option");
+    option.value = user;
+    option.textContent = user;
+    select.appendChild(option);
+  });
+}
+
+
 function getCurrentCycle() {
   const today = new Date();
   const diffDays = Math.floor((today - anchorDate) / 86400000);
@@ -215,6 +252,7 @@ function renderDates() {
   }
 
   updateWeekControls();
+  loadUserDataIntoRows();
   calculate();
 }
 
@@ -354,14 +392,16 @@ function addUser() {
   select.appendChild(option);
   select.value = name;
 
-  currentUser = name;
+currentUser = name;
+saveUserList();
 }
 
-
-
 getCurrentCycle();
+loadUserList();
 detectCurrentWeek();
 renderDates();
+loadUser();
+
 </script>
 
 </body>
