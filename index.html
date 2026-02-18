@@ -4,436 +4,271 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Timecard</title>
 <style>
-body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  padding: 15px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  padding: 8px;
-  text-align: center;
-  border: 1px solid #ccc;
-}
-
-input {
-  width: 100%;
-  padding: 6px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #fff;
-  box-sizing: border-box;
-}
-
-input[type="date"],
-input[type="time"] {
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-button {
-  margin-top: 12px;
-  padding: 10px;
-  width: 100%;
-  font-size: 16px;
-  border-radius: 8px;
-  border: none;
-  background: #007aff;
-  color: white;
-}
-
-.total {
-  font-weight: bold;
-}
-
-  .today-row {
-  background-color: #e6f9ec;
-  border-left: 5px solid #28a745;
-}
-  button:disabled {
-  background: #ccc !important;
-  color: #666;
-  cursor: not-allowed;
-}
-
-
-h2 {
-  margin-bottom: 15px;
-}
+body { font-family:-apple-system,BlinkMacSystemFont,sans-serif; padding:15px; }
+table { width:100%; border-collapse:collapse; }
+th,td { padding:8px; text-align:center; border:1px solid #ccc; }
+input { width:100%; padding:6px; font-size:16px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
+button { padding:6px 10px; font-size:14px; border-radius:6px; border:none; background:#007aff; color:white; }
+button:disabled { background:#ccc; color:#666; }
+.today-row { background:#e6f9ec; border-left:5px solid #28a745; }
+.total { font-weight:bold; }
 </style>
-
 </head>
 <body>
 
 <h2>Timecard</h2>
 
-  <label><strong>Name:</strong></label>
-<select id="userSelect" onchange="loadUser()" style="padding:6px; font-size:16px;">
-  <option value="default">Default</option>
-</select>
-<button onclick="createName()" style="width:auto; padding:6px 10px;">+ Add</button>
-<button onclick="deleteName()" style="width:auto; padding:6px 10px; background:#dc3545;">Delete</button>
+<label><strong>Name:</strong></label>
+<select id="userSelect" onchange="loadUser()"></select>
+<button onclick="createName()">+ Add</button>
+<button onclick="deleteName()" style="background:#dc3545;">Delete</button>
 
 <br><br>
 
-  <label for="payRate"><strong>Pay Rate:</strong></label>
-<select id="payRate" onchange="calculate()" style="margin-bottom:15px; padding:6px; font-size:16px;">
-  <option value="7.60">£7.60</option>
-  <option value="10.05">£10.05</option>
-  <option value="12.25" selected>£12.25</option>
-  <option value="12.82">£12.82</option>
+<label><strong>Pay Rate:</strong></label>
+<select id="payRate" onchange="autoSave();calculate();">
+<option value="7.60">£7.60</option>
+<option value="10.05">£10.05</option>
+<option value="12.25" selected>£12.25</option>
+<option value="12.82">£12.82</option>
 </select>
 
-  <div style="margin-bottom:20px;">
+<br><br>
 
-  <!-- View Selector -->
-  <label><strong>View:</strong></label>
-  <select id="viewSelect" onchange="setView(this.value)" style="padding:6px; font-size:16px; margin-bottom:10px;">
-    <option value="week" selected>Week View</option>
-    <option value="month">Month View</option>
-  </select>
-
-    <button onclick="goToToday()" style="width:auto; padding:6px 12px; margin-left:10px;">Today</button>
-
-  <!-- Week Navigation -->
-  <div id="weekControls" style="display:flex; align-items:center; gap:10px; margin-top:10px;">
-    <button id="prevWeek" onclick="changeWeek(-1)" style="width:auto; padding:5px 10px;">◀</button>
-    <span id="weekLabel" style="font-weight:bold;">Week 1</span>
-    <button id="nextWeek" onclick="changeWeek(1)" style="width:auto; padding:5px 10px;">▶</button>
-  </div>
-
-  <h3 id="cycleRange" style="margin-top:15px;"></h3>
+<div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+<button id="prevSlip" onclick="changePayslip(-1)">◀</button>
+<span id="cycleRange" style="font-weight:bold;"></span>
+<button id="nextSlip" onclick="changePayslip(1)">▶</button>
 </div>
 
-<table border="1">
+<label><strong>View:</strong></label>
+<select id="viewSelect" onchange="setView(this.value)">
+<option value="week">Week View</option>
+<option value="month">Month View</option>
+</select>
+<button onclick="goToToday()">Today</button>
+
+<div id="weekControls" style="margin-top:10px;">
+<button id="prevWeek" onclick="changeWeek(-1)">◀</button>
+<span id="weekLabel"></span>
+<button id="nextWeek" onclick="changeWeek(1)">▶</button>
+</div>
+
+<table>
 <thead>
 <tr>
 <th>Date</th>
 <th>Clock In</th>
 <th>Clock Out</th>
-<th>Break (hrs)</th>
-<th>Total Hours</th>
+<th>Break</th>
+<th>Total</th>
 </tr>
 </thead>
-<tbody id="rows">
-</tbody>
+<tbody id="rows"></tbody>
 </table>
 
-<h3>Total Week Hours: <span id="weekTotal">0.00</span></h3>
+<h3>Total Hours: <span id="weekTotal">0.00</span></h3>
 <h3>Total Money: £<span id="totalMoney">0.00</span></h3>
-<button onclick="resetUser()" style="background:#dc3545;">Reset</button>
-
 
 <script>
-const anchorDate = new Date(2026, 1, 2); // Feb 2 2026
-let currentView = "week";
-let currentWeek = 1;
+
+/* ================= PAYSLIPS ================= */
+
+const payslips = [];
+let start = new Date(2025,11,8); // Payslip 9 start (8 Dec 2025)
+
+while (start <= new Date(2026,11,7)) { // until 7 Dec 2026
+  payslips.push(new Date(start));
+  start.setDate(start.getDate()+28);
+}
+
+let currentPayslipIndex = 2; // Payslip 11 default
 let cycleStartDate;
+let currentView="week";
+let currentWeek=1;
+let currentUser="default";
 
-  function loadUserDataIntoRows() {
-  const stored = JSON.parse(localStorage.getItem(getUserKey()));
-  if (!stored) return;
+/* ================= USER ================= */
 
-  if (stored.rate) {
-    document.getElementById("payRate").value = stored.rate;
-  }
-
-  const data = stored.data || {};
-
-  document.querySelectorAll("#rows tr").forEach(row => {
-    const date = row.querySelector("td").innerText;
-
-    if (data[date]) {
-      row.querySelector(".in").value = data[date].in || "";
-      row.querySelector(".out").value = data[date].out || "";
-      row.querySelector(".break").value = data[date].break || 0;
-    }
+function loadUserList(){
+  let users=JSON.parse(localStorage.getItem("users"))||["default"];
+  const sel=document.getElementById("userSelect");
+  sel.innerHTML="";
+  users.forEach(u=>{
+    let o=document.createElement("option");
+    o.value=u; o.textContent=u;
+    sel.appendChild(o);
   });
 }
 
-
-  function saveUserList() {
-  const users = [];
-  document.querySelectorAll("#userSelect option").forEach(opt => {
-    users.push(opt.value);
-  });
-  localStorage.setItem("timecard_users", JSON.stringify(users));
-}
-
-  function loadUserList() {
-  const savedUsers = JSON.parse(localStorage.getItem("timecard_users"));
-
-  const select = document.getElementById("userSelect");
-  select.innerHTML = "";
-
-  if (!savedUsers || savedUsers.length === 0) {
-    select.innerHTML = `<option value="default">Default</option>`;
-    localStorage.setItem("timecard_users", JSON.stringify(["default"]));
-    return;
-  }
-
-  savedUsers.forEach(user => {
-    const option = document.createElement("option");
-    option.value = user;
-    option.textContent = user;
-    select.appendChild(option);
-  });
-}
-function createName() {
-  const name = prompt("Enter name:");
-  if (!name) return;
-
-  const users = JSON.parse(localStorage.getItem("timecard_users")) || [];
-
-  if (users.includes(name)) return alert("Name already exists");
-
+function createName(){
+  const name=prompt("Enter name:");
+  if(!name) return;
+  let users=JSON.parse(localStorage.getItem("users"))||["default"];
+  if(users.includes(name)) return;
   users.push(name);
-  localStorage.setItem("timecard_users", JSON.stringify(users));
-
+  localStorage.setItem("users",JSON.stringify(users));
   loadUserList();
-  document.getElementById("userSelect").value = name;
-  currentUser = name;
+  document.getElementById("userSelect").value=name;
+  currentUser=name;
   renderDates();
 }
 
-function deleteName() {
-  if (currentUser === "default") return alert("Cannot delete default");
-
-  const users = JSON.parse(localStorage.getItem("timecard_users")) || [];
-  const updated = users.filter(u => u !== currentUser);
-
-  localStorage.setItem("timecard_users", JSON.stringify(updated));
-
-  localStorage.removeItem("timecard_" + currentUser);
-
-  currentUser = "default";
+function deleteName(){
+  if(currentUser==="default") return;
+  let users=JSON.parse(localStorage.getItem("users"))||[];
+  users=users.filter(u=>u!==currentUser);
+  localStorage.setItem("users",JSON.stringify(users));
+  currentUser="default";
   loadUserList();
-  document.getElementById("userSelect").value = "default";
   renderDates();
 }
 
+/* ================= PAYSLIP NAV ================= */
 
+function updatePayslip(){
+  cycleStartDate=new Date(payslips[currentPayslipIndex]);
+  const end=new Date(cycleStartDate);
+  end.setDate(end.getDate()+27);
 
-function getCurrentCycle() {
-  const today = new Date();
-  const diffDays = Math.floor((today - anchorDate) / 86400000);
-  const cycleIndex = Math.floor(diffDays / 28);
+  const options={day:"numeric",month:"short",year:"numeric"};
+  document.getElementById("cycleRange").innerText=
+  `Payslip ${currentPayslipIndex+9}: ${cycleStartDate.toLocaleDateString("en-GB",options)} - ${end.toLocaleDateString("en-GB",options)}`;
 
-  cycleStartDate = new Date(anchorDate);
-  cycleStartDate.setDate(anchorDate.getDate() + cycleIndex * 28);
-
-  const cycleEnd = new Date(cycleStartDate);
-  cycleEnd.setDate(cycleStartDate.getDate() + 27);
-
-  const options = { day: "numeric", month: "short", year: "numeric" };
-
-  document.getElementById("cycleRange").innerText =
-    `Cycle: ${cycleStartDate.toLocaleDateString("en-GB", options)} to ${cycleEnd.toLocaleDateString("en-GB", options)}`;
+  document.getElementById("prevSlip").disabled=currentPayslipIndex===0;
+  document.getElementById("nextSlip").disabled=currentPayslipIndex===payslips.length-1;
 }
 
-  function detectCurrentWeek() {
-  const today = new Date();
-  const diffDays = Math.floor((today - cycleStartDate) / 86400000);
-  currentWeek = Math.floor(diffDays / 7) + 1;
-  if (currentWeek < 1) currentWeek = 1;
-  if (currentWeek > 4) currentWeek = 4;
-}
-
-function formatDate(date) {
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  });
-}
-
-function addRow(dateObj) {
-  const tbody = document.getElementById("rows");
-  const row = document.createElement("tr");
-
-  const today = new Date();
-  const isToday =
-    dateObj.getDate() === today.getDate() &&
-    dateObj.getMonth() === today.getMonth() &&
-    dateObj.getFullYear() === today.getFullYear();
-
-  if (isToday) {
-  row.classList.add("today-row");
-}
-
-  row.innerHTML = `
-    <td>${formatDate(dateObj)}</td>
-    <td><input type="time" class="in"></td>
-    <td><input type="time" class="out"></td>
-    <td><input type="number" step="0.01" class="break" value="0"></td>
-    <td class="total">0.00</td>
-  `;
-
-  tbody.appendChild(row);
-
-  row.querySelectorAll("input").forEach(input => {
-  input.addEventListener("input", () => {
-    calculate();
-    autoSave();
-  });
-});
-
-}
-
-  function autoSave() {
-  const stored = JSON.parse(localStorage.getItem(getUserKey())) || { data:{}, rate:null };
-
-  const data = stored.data;
-
-  document.querySelectorAll("#rows tr").forEach(row => {
-    const date = row.querySelector("td").innerText;
-
-    data[date] = {
-      in: row.querySelector(".in").value,
-      out: row.querySelector(".out").value,
-      break: row.querySelector(".break").value
-    };
-  });
-
-  stored.rate = document.getElementById("payRate").value;
-
-  localStorage.setItem(getUserKey(), JSON.stringify(stored));
-}
-
-function renderDates() {
-  const tbody = document.getElementById("rows");
-  tbody.innerHTML = "";
-
-  let daysToShow = currentView === "month" ? 28 : 7;
-  let startOffset = currentView === "month" ? 0 : (currentWeek - 1) * 7;
-
-  for (let i = 0; i < daysToShow; i++) {
-    const date = new Date(cycleStartDate);
-    date.setDate(cycleStartDate.getDate() + startOffset + i);
-    addRow(date);
-  }
-
-  updateWeekControls();
-  loadUserDataIntoRows();
-  calculate();
-}
-
-function setView(view) {
-  currentView = view;
-
-  if (view === "week") {
-    detectCurrentWeek(); // jump to current week automatically
-  } else {
-    currentWeek = 1;
-  }
-
-  renderDates();
-}
-
-
-function changeWeek(direction) {
-  currentWeek += direction;
-  if (currentWeek < 1) currentWeek = 1;
-  if (currentWeek > 4) currentWeek = 4;
-  renderDates();
-}
-
-function updateWeekControls() {
-  const prev = document.getElementById("prevWeek");
-  const next = document.getElementById("nextWeek");
-
-  if (currentView === "month") {
-    document.getElementById("weekControls").style.display = "none";
-    return;
-  }
-
-  document.getElementById("weekControls").style.display = "block";
-  document.getElementById("weekLabel").innerText = `Week ${currentWeek}`;
-
-  prev.disabled = currentWeek === 1;
-  next.disabled = currentWeek === 4;
-}
-
-function calculate() {
-  let totalHours = 0;
-
-  document.querySelectorAll("#rows tr").forEach(row => {
-    const timeIn = row.querySelector(".in").value;
-    const timeOut = row.querySelector(".out").value;
-    const breakHours = parseFloat(row.querySelector(".break").value) || 0;
-
-    if (timeIn && timeOut) {
-      const inDate = new Date(`1970-01-01T${timeIn}:00`);
-      const outDate = new Date(`1970-01-01T${timeOut}:00`);
-
-      let diff = (outDate - inDate) / 1000 / 60 / 60;
-      if (diff < 0) diff += 24;
-
-      diff -= breakHours;
-      if (diff < 0) diff = 0;
-
-      row.querySelector(".total").innerText = diff.toFixed(2);
-      totalHours += diff;
-    } else {
-      row.querySelector(".total").innerText = "0.00";
-    }
-  });
-
-  document.getElementById("weekTotal").innerText = totalHours.toFixed(2);
-
-  const selectedRate = parseFloat(document.getElementById("payRate").value);
-  const totalMoney = totalHours * selectedRate;
-  document.getElementById("totalMoney").innerText = totalMoney.toFixed(2);
-}
-
-  function goToToday() {
-  const today = new Date();
-  const diffDays = Math.floor((today - cycleStartDate) / 86400000);
-
-  if (currentView === "week") {
-    currentWeek = Math.floor(diffDays / 7) + 1;
-    if (currentWeek < 1) currentWeek = 1;
-    if (currentWeek > 4) currentWeek = 4;
-    renderDates();
-  } else {
-    renderDates();
-    setTimeout(() => {
-      const rows = document.querySelectorAll("#rows tr");
-      rows[diffDays]?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 100);
-  }
-}
-
-  let currentUser = "default";
-
-function getUserKey() {
-  return "timecard_" + currentUser + "_" + cycleStartDate.toISOString().split("T")[0];
-}
-
-function loadUser() {
-  currentUser = document.getElementById("userSelect").value;
+function changePayslip(d){
+  currentPayslipIndex+=d;
+  if(currentPayslipIndex<0) currentPayslipIndex=0;
+  if(currentPayslipIndex>payslips.length-1) currentPayslipIndex=payslips.length-1;
+  updatePayslip();
   detectCurrentWeek();
   renderDates();
 }
 
-function resetUser() {
-  localStorage.removeItem(getUserKey());
-detectCurrentWeek();
-renderDates();
+/* ================= WEEK LOGIC ================= */
+
+function detectCurrentWeek(){
+  const today=new Date();
+  const diff=Math.floor((today-cycleStartDate)/86400000);
+  currentWeek=Math.floor(diff/7)+1;
+  if(currentWeek<1) currentWeek=1;
+  if(currentWeek>4) currentWeek=4;
 }
 
-getCurrentCycle();
+function changeWeek(d){
+  currentWeek+=d;
+  if(currentWeek<1) currentWeek=1;
+  if(currentWeek>4) currentWeek=4;
+  renderDates();
+}
+
+function setView(v){
+  currentView=v;
+  if(v==="week") detectCurrentWeek();
+  renderDates();
+}
+
+/* ================= STORAGE ================= */
+
+function getKey(){
+  return `tc_${currentUser}_${cycleStartDate.toISOString().split("T")[0]}`;
+}
+
+function autoSave(){
+  let stored=JSON.parse(localStorage.getItem(getKey()))||{data:{},rate:null};
+  stored.rate=document.getElementById("payRate").value;
+  document.querySelectorAll("#rows tr").forEach(r=>{
+    const date=r.dataset.date;
+    stored.data[date]={
+      in:r.querySelector(".in").value,
+      out:r.querySelector(".out").value,
+      br:r.querySelector(".br").value
+    };
+  });
+  localStorage.setItem(getKey(),JSON.stringify(stored));
+}
+
+function loadData(){
+  let stored=JSON.parse(localStorage.getItem(getKey()));
+  if(!stored) return;
+  if(stored.rate) document.getElementById("payRate").value=stored.rate;
+  document.querySelectorAll("#rows tr").forEach(r=>{
+    const date=r.dataset.date;
+    if(stored.data[date]){
+      r.querySelector(".in").value=stored.data[date].in||"";
+      r.querySelector(".out").value=stored.data[date].out||"";
+      r.querySelector(".br").value=stored.data[date].br||0;
+    }
+  });
+}
+
+/* ================= RENDER ================= */
+
+function renderDates(){
+  const tbody=document.getElementById("rows");
+  tbody.innerHTML="";
+  let days=currentView==="month"?28:7;
+  let offset=currentView==="month"?0:(currentWeek-1)*7;
+
+  for(let i=0;i<days;i++){
+    let d=new Date(cycleStartDate);
+    d.setDate(d.getDate()+offset+i);
+    let row=document.createElement("tr");
+    row.dataset.date=d.toISOString().split("T")[0];
+
+    const today=new Date();
+    if(d.toDateString()===today.toDateString())
+      row.classList.add("today-row");
+
+    row.innerHTML=`
+      <td>${d.toLocaleDateString("en-GB")}</td>
+      <td><input type="time" class="in"></td>
+      <td><input type="time" class="out"></td>
+      <td><input type="number" step="0.01" class="br" value="0"></td>
+      <td class="total">0.00</td>`;
+    tbody.appendChild(row);
+  }
+
+  updateWeekControls();
+  loadData();
+  calculate();
+}
+
+function updateWeekControls(){
+  document.getElementById("weekControls").style.display=
+  currentView==="month"?"none":"block";
+  document.getElementById("weekLabel").innerText=`Week ${currentWeek}`;
+}
+
+function calculate(){
+  let total=0;
+  document.querySelectorAll("#rows tr").forEach(r=>{
+    const i=r.querySelector(".in").value;
+    const o=r.querySelector(".out").value;
+    const b=parseFloat(r.querySelector(".br").value)||0;
+    if(i&&o){
+      let diff=(new Date(`1970-01-01T${o}`)-new Date(`1970-01-01T${i}`))/3600000;
+      if(diff<0) diff+=24;
+      diff-=b;
+      if(diff<0) diff=0;
+      r.querySelector(".total").innerText=diff.toFixed(2);
+      total+=diff;
+    }
+  });
+  document.getElementById("weekTotal").innerText=total.toFixed(2);
+  document.getElementById("totalMoney").innerText=(total*parseFloat(document.getElementById("payRate").value)).toFixed(2);
+}
+
+/* ================= INIT ================= */
+
 loadUserList();
+updatePayslip();
 detectCurrentWeek();
 renderDates();
-loadUser();
 
 </script>
-
 </body>
 </html>
