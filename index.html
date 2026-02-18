@@ -76,9 +76,10 @@ h2 {
 <select id="userSelect" onchange="loadUser()" style="padding:6px; font-size:16px;">
   <option value="default">Default</option>
 </select>
-  <button onclick="createName()" style="width:auto; padding:6px 10px;">+ Add</button>
+<button onclick="createName()" style="width:auto; padding:6px 10px;">+ Add</button>
 <button onclick="deleteName()" style="width:auto; padding:6px 10px; background:#dc3545;">Delete</button>
 
+<br><br>
 
   <label for="payRate"><strong>Pay Rate:</strong></label>
 <select id="payRate" onchange="calculate()" style="margin-bottom:15px; padding:6px; font-size:16px;">
@@ -324,9 +325,16 @@ function renderDates() {
 
 function setView(view) {
   currentView = view;
-  currentWeek = 1;
+
+  if (view === "week") {
+    detectCurrentWeek(); // jump to current week automatically
+  } else {
+    currentWeek = 1;
+  }
+
   renderDates();
 }
+
 
 function changeWeek(direction) {
   currentWeek += direction;
