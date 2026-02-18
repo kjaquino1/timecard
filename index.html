@@ -12,34 +12,56 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 th, td {
-  padding: 10px;
+  padding: 12px 8px;
   text-align: center;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
 }
 
 th {
   background: #f5f5f5;
 }
 
+/* Column sizing */
+th:nth-child(1), td:nth-child(1) { width: 26%; }
+th:nth-child(2), td:nth-child(2),
+th:nth-child(3), td:nth-child(3) { width: 20%; }
+th:nth-child(4), td:nth-child(4) { width: 14%; }
+th:nth-child(5), td:nth-child(5) { width: 20%; }
+
+/* General input styling */
 input {
-  width: 100%;
-  padding: 8px;
   font-size: 16px;
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #f2f2f2;
+  text-align: center;
   box-sizing: border-box;
 }
 
+/* Fix time inputs */
 input[type="time"] {
-  min-width: 90px;
+  width: 85px;
+  height: 38px;
+  padding: 6px;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
+/* Break input */
+input[type="number"] {
+  width: 65px;
+  height: 38px;
+  padding: 6px;
+}
+
+/* Total column */
 .total {
   font-weight: bold;
+  font-size: 16px;
 }
 
 .today-row {
@@ -47,6 +69,7 @@ input[type="time"] {
   border-left: 5px solid #28a745;
 }
 
+/* Navigation Buttons */
 button {
   padding: 8px 14px;
   font-size: 15px;
@@ -62,18 +85,18 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Week navigation layout fix */
+/* Week navigation spacing */
 #weekControls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 15px;
+  gap: 18px;
   margin: 15px 0;
 }
 
 #weekControls button {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   font-size: 18px;
   border-radius: 12px;
@@ -82,7 +105,7 @@ button:disabled {
 #weekLabel {
   font-weight: bold;
   font-size: 18px;
-  padding: 0 10px;
+  padding: 0 12px;
 }
 
 /* Payslip navigation spacing */
@@ -90,29 +113,23 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 15px;
+  gap: 18px;
   margin: 15px 0;
 }
 
 .payslip-nav button {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   border-radius: 12px;
   font-size: 18px;
-}
-
-/* Better spacing between clock in/out */
-td:nth-child(2),
-td:nth-child(3) {
-  padding-left: 12px;
-  padding-right: 12px;
 }
 
 h2 {
   margin-bottom: 20px;
 }
 </style>
+
 
 </head>
 <body>
