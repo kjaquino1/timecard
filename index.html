@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Timecard Calculator</title>
+<title>Timecard</title>
 <style>
 body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -59,7 +59,16 @@ h2 {
 </head>
 <body>
 
-<h2>Weekly Timecard</h2>
+<h2>Timecard</h2>
+
+  <label for="payRate"><strong>Pay Rate:</strong></label>
+<select id="payRate" onchange="calculate()" style="margin-bottom:15px; padding:6px; font-size:16px;">
+  <option value="7.60">£7.60</option>
+  <option value="10.05">£10.05</option>
+  <option value="12.25" selected>£12.25</option>
+  <option value="12.82">£12.82</option>
+</select>
+
 
 <table border="1">
 <thead>
@@ -76,7 +85,7 @@ h2 {
 </table>
 
 <h3>Total Week Hours: <span id="weekTotal">0.00</span></h3>
-<h3>Total Money (£12.25/hr): £<span id="totalMoney">0.00</span></h3>
+<h3>Total Money: £<span id="totalMoney">0.00</span></h3>
 
 <script>
 function getWeekDates() {
@@ -150,7 +159,8 @@ function calculate() {
 
 document.getElementById("weekTotal").innerText = weekTotal.toFixed(2);
 
-const totalMoney = weekTotal * 12.25;
+const selectedRate = parseFloat(document.getElementById("payRate").value);
+const totalMoney = weekTotal * selectedRate;
 document.getElementById("totalMoney").innerText = totalMoney.toFixed(2);
 }
 
