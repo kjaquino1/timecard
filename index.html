@@ -257,8 +257,9 @@ function setView(v){
 /* ================= TODAY BUTTON ================= */
 
 function goToToday(){
-  const today=new Date();
+  const today = new Date();
 
+  // Find correct payslip
   for(let i=0;i<payslips.length;i++){
     let start=new Date(payslips[i]);
     let end=new Date(start);
@@ -270,11 +271,24 @@ function goToToday(){
   }
 
   updatePayslip();
-  detectCurrentWeek();
-  currentView="week";
-  document.getElementById("viewSelect").value="week";
-  renderDates();
+
+  const diff=Math.floor((today-cycleStartDate)/86400000);
+  currentWeek=Math.floor(diff/7)+1;
+  if(currentWeek<1)currentWeek=1;
+  if(currentWeek>4)currentWeek=4;
+
+  if(currentView==="week"){
+    renderDates();
+  } else {
+    // Month view
+    renderDates();
+    setTimeout(()=>{
+      const row=document.querySelector(`[data-date="${today.toISOString().split("T")[0]}"]`);
+      if(row) row.scrollIntoView({behavior:"smooth",block:"center"});
+    },50);
+  }
 }
+
 
 /* ================= STORAGE ================= */
 
